@@ -1,17 +1,24 @@
-var mysql      = require('mysql');
-var connection = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'me',
-  password : 'secret',
-  database : 'my_db',
-  port : 3306
-});
- 
-connection.connect();
- 
-connection.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
-  if (error) throw error;
-  console.log('The solution is: ', results[0].solution);
-});
- 
-connection.end();
+const { Client } = require('pg');
+
+async function runDatabase() {
+  const client = new Client({
+    user: 'myuser',
+    host: 'localhost',
+    database: 'mydb',
+    password: 'mypassword',
+    port: 5432,
+  });
+
+  try {
+    await client.connect();
+    console.log('Connected successfully');
+    const res = await client.query('SELECT NOW()');
+    console.log('Current time:', res.rows[0]);
+  } catch (err) {
+    console.error('Error executing query', err.stack);
+  } finally {
+    await client.end();
+  }
+}
+
+module.exports = {runDatabase} 
