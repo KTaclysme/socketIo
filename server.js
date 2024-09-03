@@ -12,7 +12,6 @@ const users = {};
 
 // page d'accueil
 app.get("/", (req, res) => {
-	// une page html :)
 	res.sendFile( __dirname + "/public" + "/index.html" );
 });
 
@@ -25,9 +24,6 @@ io.on('connection' , (socket) => {
 
 		console.log("Message recu de "+from)
 		console.log("Message :  "+msg)
-
-		// chercher si le message est destiner à qqu
-		// @mounir bonjour je suis la
 
 		if(msg.startsWith('@') ){
 			let name = msg.substring(1, msg.indexOf(" "))
