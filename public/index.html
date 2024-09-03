@@ -1,49 +1,85 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Socket.IO chat</title>
-    <style>
-      body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title></title>
+</head>
+<body>
 
-      #form { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 0; left: 0; right: 0; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
-      #input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
-      #input:focus { outline: none; }
-      #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
-
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages > li { padding: 0.5rem 1rem; }
-      #messages > li:nth-child(odd) { background: #efefef; }
-    </style>
-  </head>
-  <body>
     <ul id="messages"></ul>
-    <form id="form" action="">
-      <input id="input" autocomplete="off" /><button>Send</button>
-    </form>
+	<form id="form">
+		<input type="text" name="input" id="input" style="width:300px">
+		<button type="submit">Envoyer</button>
+	</form>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-      const socket = io();
 
-      const form = document.getElementById('form');
-      const input = document.getElementById('input');
-      const messages = document.getElementById('messages');
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.min.js"
+      integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+      crossorigin="anonymous"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript">
 
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        if (input.value) {
-          socket.emit('chat message', input.value);
-          input.value = '';
-        }
-      });
+        // ?? le temps de chargement de jquery
+        jQuery(document).ready(function() {
 
-      socket.on('chat message', (msg) => {
-        const item = document.createElement('li');
-        item.textContent = msg;
-        messages.appendChild(item);
-        window.scrollTo(0, document.body.scrollHeight);
-      });
-    </script>
-  </body>
+            var socket = io();
+            let input = $("#input");
+            let userName = "";
+            let messages = $("#messages");
+
+            input.attr("placeholder","Merci de saisir votre nom")
+
+
+            // lorsque l'utilisateur click sur submit
+            $('#form').submit(function (event) {
+                event.preventDefault();
+
+                if (userName == "") {
+                    userName = input.val()
+                    socket.emit("register", userName)
+                    input.val("");
+                    input.attr("placeholder","Bonjour " + userName + " tu peut envoyer un message")
+                }else{
+                    // je vais envoyer un message
+                    socket.emit("send", {
+                        from:userName, 
+                        msg : input.val()
+                    })
+                    input.val("");
+                }
+             
+             });
+
+
+            socket.on("recupererMsg", function(msg){
+                messages.append($("<li>").text(msg))
+            })
+
+        });
+        
+		var form = document.getElementById("form")
+		var input = document.getElementById("input")
+        var messages = document.getElementById("messages")
+
+		form.addEventListener("submit" , function(e) {
+			e.preventDefault(); // stopper la redirection
+			if(input.value){
+                // envoyer
+				socket.emit("send", input.value)
+				input.value = ""
+			}
+		});
+
+        // on : réception
+        socket.on("recupererMsg", function(msg){
+            // créer un li
+            var li = document.createElement("li");
+            li.textContent = msg;
+            messages.appendChild(li)
+        })
+
+	</script>
+</body>
 </html>
