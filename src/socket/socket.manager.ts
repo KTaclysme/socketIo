@@ -35,7 +35,6 @@ export default function setupSocketIO(io: Server) {
       console.log('\n');
     });
 
-    // Gestion de la déconnexion des utilisateurs
     socket.on('disconnect', () => {
       for (const username in users) {
         if (users[username] === socket.id) {
