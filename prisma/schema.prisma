@@ -14,6 +14,19 @@ datasource db {
 }
 
 model User {
-  uuid String @unique @default(uuid())
-  name String
+  id            Int       @id @default(autoincrement())
+  name           String
+  dateCreation  DateTime  @default(now())
+  messagesFrom  Message[] @relation("MessagesFrom")
+  messagesTo    Message[] @relation("MessagesTo")
+}
+
+model Message {
+  id            Int        @id @default(autoincrement())
+  dateCreation  DateTime   @default(now())
+  body          String?
+  idUserFrom    Int
+  idUserTo      Int
+  userFrom      User @relation("MessagesFrom", fields: [idUserFrom], references: [id])
+  userTo        User @relation("MessagesTo", fields: [idUserTo], references: [id])
 }
