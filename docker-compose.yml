@@ -1,32 +1,16 @@
 services:
   postgres:
-    image: postgres:15
+    image: postgres:latest
     container_name: my_postgres
     environment:
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: mydb
+      POSTGRES_DB: tchat
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-
-  node:
-    image: node:18
-    container_name: my_node_app
-    working_dir: /usr/src/app
-    volumes:
-      - .:/usr/src/app
-    ports:
-      - "3000:3000"
-    depends_on:
-      - postgres
-    environment:
-      DB_USER: myuser
-      DB_PASSWORD: mypassword
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: mydb
+      - ./scripts/create_db.sql:/docker-entrypoint-initdb.d/create_db.sql
 
 volumes:
   pgdata:

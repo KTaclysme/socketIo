@@ -1,49 +1,49 @@
-const express = require('express');
-const http = require("http");
-const {Server} = require('socket.io');
-const { runDatabase } = require('./db');
-
+import express from 'express';
+import http from 'node:http';
+import { Server } from 'socket.io';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { AnyError } from 'mongodb';
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const users = {};
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-// page d'accueil
+const users:any = {};
+
 app.get("/", (req, res) => {
-	res.sendFile( __dirname + "/public" + "/index.html" );
+  res.sendFile(__dirname + "/public" + "/index.html");
 });
 
-runDatabase();
 
 io.on('connection' , (socket) => {
 	console.log('Un utilisateur est connecté');
-
-	socket.on("send", (data) => { // message envoyer à partir d'un client
+	
+	socket.on("send", (data) => { 
 		const {from, msg} = data;
-
+		
 		console.log("Message recu de "+from)
 		console.log("Message :  "+msg)
-
+		
 		if(msg.startsWith('@') ){
 			let name = msg.substring(1, msg.indexOf(" "))
 			io.to(users[name]).emit("recupererMsg", msg.substring(name.length+2));
 		}else{
-			// message et envoyer a tout le monde
 			console.log("Message envoyer à tout le monde")
 			io.emit("recupererMsg", msg);
 		}
-
+		
 		console.log("\n")
-		//io.to(users[nom]).emit("recupererMsg", msg); // pour l'ensemble des utilisateurs connecter
 	});
-
-	socket.on("register", (username) => { // message envoyer à partir d'un client
+	
+	socket.on("register", (username) => { 
 		users[username] = socket.id
 		console.log('Un utilisateur est connecter sous le nom de '+ username);
 	});
-
+	
 	socket.on("disconnect" , () =>{
 		for(let username in users){
 			if(users[username] == socket.id){
@@ -53,10 +53,9 @@ io.on('connection' , (socket) => {
 		}
 		console.log('Un utilisateur est déconnecté');
 	});
-
+	
 });
 
-// demmarer le server
 server.listen(3001, () => {
 	console.log("Serveur et bien lancer sur le port 3001")
 }) 
