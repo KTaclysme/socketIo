@@ -1,30 +1,28 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
+import {getUserById, addUser} from '../controllers/users.controller'
 
-const prisma = new PrismaClient();
 const router = Router();
 
 router.get('/:id', async (req, res) => {
-    const { id } = req.params
-    await prisma.user.findUnique({
-        where : {id: Number(id)},
+    const { id } = req.params;
 
-    })
+    try {
+        const user = await getUserById(Number(id));
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({error: 'Unavaible user id'})
+    }   
 })
 
 router.post('/signIn', async (req, res) => {
-    const { name } = req.body;
+    const { name, password } = req.body;
 
     if (!name) {
-        return res.status(400).json({ error: 'Name is required' });
+        return res.status(400).json({ error: 'unavaible name' });
     }
 
     try {
-        const newUser = await prisma.user.create({
-            data: {
-                name,
-            }
-        });
+        const newUser = await addUser(String(name), String(password))
         res.status(201).json(newUser);
     } catch (error) {
         console.error('Error creating user:', error);
