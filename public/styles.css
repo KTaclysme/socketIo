@@ -1,0 +1,112 @@
+/* General styles */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+/* Container for form and chat sections */
+.container {
+    width: 80%;
+    margin: auto;
+    max-width: 1200px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Header styles */
+h1, h2 {
+    color: #333;
+}
+
+/* Form styles */
+form {
+    margin-bottom: 20px;
+}
+
+form input {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+form button {
+    padding: 10px 15px;
+    border: none;
+    background: #007bff;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+form button:hover {
+    background: #0056b3;
+}
+
+/* Result text styles */
+p#register-result, p#login-result {
+    color: red;
+    font-weight: bold;
+}
+
+/* Chat application styles */
+#userListContainer, #friendsListContainer {
+    margin-bottom: 20px;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+#messages {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+#form {
+    display: flex;
+    align-items: center;
+}
+
+#input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#form button {
+    margin-left: 10px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .container {
+        width: 95%;
+    }
+
+    form input, form button {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    #form {
+        flex-direction: column;
+    }
+
+    #input {
+        margin-bottom: 10px;
+    }
+}
