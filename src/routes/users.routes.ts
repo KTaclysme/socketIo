@@ -1,5 +1,15 @@
 import { Router } from 'express';
-import {getUserById, addUser, getUserByName, getAllUsers} from '../controllers/users.controller'
+import {getUserById, addUser, getUserByName, getAllUsers, addFriend, getFriend} from '../controllers/users.controller'
+import { User } from '@prisma/client';
+
+declare global {
+    namespace Express {
+        interface Request {
+            user?: User;
+        }
+    }
+}
+
 
 const router = Router();
 
@@ -13,6 +23,30 @@ router.get('/:id', async (req, res) => {
         res.status(500).json({error: 'Unavaible user id'})
     }   
 })
+
+router.post('/addFriend', async (req, res) => {
+    const { userId, friendId } = req.body;
+    
+    try {
+        const updatedUser = await addFriend(userId, friendId);
+        res.status(200).json({ message: 'Friend added', user: updatedUser });
+    } catch (error) {
+        console.error('Error adding friend:', error);
+        res.status(500).json({ message: 'Error adding friend' });
+    }
+});
+
+router.get('/friends', async (req, res) => {
+    const userId = Number(req.user.id);
+
+    try {
+        const friends = await getFriend(userId);
+        res.status(200).json(friends);
+    } catch (error) {
+        res.status(500).json({ error: 'Erreur lors de la récupération des amis' });
+    }
+});
+
 
 router.get('/', async (req, res) => {
     try {

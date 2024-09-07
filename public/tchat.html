@@ -10,7 +10,11 @@
         <h3>Utilisateurs</h3>
         <ul id="userList"></ul>
     </div>
-    <h3>Le Tcaht</h3>
+    <div id="friendsListContainer">
+        <h3>Amis</h3>
+        <ul id="friendsList"></ul>
+    </div>
+    <h3>Le Tchat</h3>
     <ul id="messages"></ul>
     <form id="form">
         <input type="text" id="input" style="width:300px;" placeholder="Tapez votre message...">
@@ -29,13 +33,25 @@
             const messages = $("#messages");
             const input = $("#input");
             const userList = $("#userList");
+            const friendsList = $("#friendsList");
+
+            socket.emit('getUsers');
+            socket.emit('getFriends');
 
             socket.on('updateUserList', function(users) {
                 userList.empty();
                 users.forEach(user => {
-                    const userStatus = user.isOnline ? '🟢' : '🔴';  
+                    const userStatus = user.isOnline ? '🟢' : '🔴';
                     const listItem = `<li>${userStatus} ${user.name}</li>`;
                     userList.append(listItem);
+                });
+            });
+
+            socket.on('updateFriendsList', function(friends) {
+                friendsList.empty();
+                friends.forEach(friends => {
+                    const listItem = `<li>${friends.name}</li>`;
+                    friendsList.append(listItem);
                 });
             });
 
