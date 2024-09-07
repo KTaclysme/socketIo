@@ -2,7 +2,7 @@ Here's a README for your project based on the `package.json` file you provided.
 
 ---
 
-# Messaging Application (msgapp)
+# Messaging Application (socketIo)
 
 A real-time messaging application built with Express, Socket.IO, TypeScript, JWT, and Prisma.
 
@@ -20,8 +20,8 @@ Ensure you have the following installed on your machine:
 1. **Clone the repository:**
 
    ```
-   git clone https://github.com/yourusername/msgapp.git
-   cd msgapp
+   git clone git@github.com:KTaclysme/socketIo.git
+   cd socketIo
    ```
 
 2. **Install dependencies:**
@@ -130,4 +130,4 @@ This project is licensed under the ISC License.
 
 ---
 
-Feel free to replace `https://github.com/yourusername/msgapp.git` with the actual repository link if you want to include it. Let me know if you'd like any additional sections!
+Feel free to replace `https://github.com/yourusername/socketIo.git` with the actual repository link if you want to include it. Let me know if you'd like any additional sections!
