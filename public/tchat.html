@@ -6,6 +6,11 @@
     <title>Chat Application</title>
 </head>
 <body>
+    <div id="userListContainer">
+        <h3>Utilisateurs</h3>
+        <ul id="userList"></ul>
+    </div>
+
     <ul id="messages"></ul>
     <form id="form">
         <input type="text" id="input" style="width:300px;" placeholder="Tapez votre message...">
@@ -23,16 +28,22 @@
 
             const messages = $("#messages");
             const input = $("#input");
+            const userList = $("#userList");
+
+            socket.on('updateUserList', function(users) {
+                userList.empty();
+                users.forEach(user => {
+                    const userStatus = user.isOnline ? '🟢' : '🔴';  
+                    const listItem = `<li>${userStatus} ${user.name}</li>`;
+                    userList.append(listItem);
+                });
+            });
 
             $('#form').submit(function(event) {
                 event.preventDefault();
                 let messageBody = input.val().trim();
-
                 if (messageBody !== "") {
-                    socket.emit('sendMessage', {
-                        body: messageBody
-                    });
-
+                    socket.emit('sendMessage', { body: messageBody });
                     input.val("");
                 }
             });

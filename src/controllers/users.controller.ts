@@ -30,6 +30,10 @@ export const getUserById = async (id: number) => {
     });
 };
 
+export const getAllUsers = async () => {
+    return await prisma.user.findMany();
+};
+
 export const addUser = async (name: string, password: string) => {
     return await prisma.user.create({
         data : {

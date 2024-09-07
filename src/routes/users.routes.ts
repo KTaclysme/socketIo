@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import {getUserById, addUser, getUserByName} from '../controllers/users.controller'
+import {getUserById, addUser, getUserByName, getAllUsers} from '../controllers/users.controller'
 
 const router = Router();
 
@@ -13,6 +13,15 @@ router.get('/:id', async (req, res) => {
         res.status(500).json({error: 'Unavaible user id'})
     }   
 })
+
+router.get('/', async (req, res) => {
+    try {
+        const users = await getAllUsers(); 
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(500).json({ error: 'Unable to fetch users' });
+    }   
+});
 
 router.get('/name/:name', async (req, res) => {
     try {

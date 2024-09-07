@@ -2,7 +2,15 @@ import { Server, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../utils/jwt.utils';
 import { createMessage } from '../controllers/messages.controller';
-import { getUserByName, updateUser, getUserNameById } from '../controllers/users.controller';
+import { getUserByName, updateUser, getUserNameById, getAllUsers } from '../controllers/users.controller';
+
+interface User {
+    id: number;
+    name: string;
+    sockerId: string | null;
+}
+
+const connectedUsers = new Map<number, string>(); 
 
 export default function setupSocketIO(io: Server) {
     io.use(async (socket: Socket, next) => {
@@ -22,9 +30,21 @@ export default function setupSocketIO(io: Server) {
     });
 
     io.on('connection', async (socket: Socket) => {
-        console.log(`Utilisateur connecté : ${socket.data.userId}`);
-
         const userId = socket.data.userId;
+        
+        await updateUser(userId, socket.id); 
+        connectedUsers.set(userId, socket.id);
+
+        const allUsers: User[] = await getAllUsers();  
+
+        const usersWithStatus = allUsers.map((user: User) => ({
+            id: user.id,
+            name: user.name,
+            isOnline: connectedUsers.has(user.id)
+        }));
+
+        io.emit('updateUserList', usersWithStatus); 
+
         try {
             await updateUser(userId, socket.id); 
             console.log(`Socket ID mis à jour : ${socket.id}`);
@@ -103,9 +123,17 @@ export default function setupSocketIO(io: Server) {
                 socket.emit('errorMessage', error.message);
             }
         });
-        
+
         socket.on('disconnect', async () => {
-            console.log(`Utilisateur déconnecté : ${socket.data.userId}`);
+            connectedUsers.delete(userId);
+
+            const updatedUsersWithStatus = allUsers.map((user: User) => ({
+                id: user.id,
+                name: user.name,
+                isOnline: connectedUsers.has(user.id)
+            }));
+
+            io.emit('updateUserList', updatedUsersWithStatus);  
         });
     });
 }
