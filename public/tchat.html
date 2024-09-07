@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Application</title>
+</head>
+<body>
+    <ul id="messages"></ul>
+    <form id="form">
+        <input type="text" id="input" style="width:300px;" placeholder="Tapez votre message...">
+        <button type="submit">Envoyer</button>
+    </form>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        $(document).ready(function() {
+            const token = localStorage.getItem('token');
+            const socket = io({
+                auth: { token }
+            });
+
+            const messages = $("#messages");
+            const input = $("#input");
+
+            $('#form').submit(function(event) {
+                event.preventDefault();
+                let messageBody = input.val().trim();
+
+                if (messageBody !== "") {
+                    socket.emit('sendMessage', {
+                        body: messageBody
+                    });
+
+                    input.val("");
+                }
+            });
+
+            socket.on('recupererMsg', function(data) {
+                const listItem = $("<li>").text(`${data.from}: ${data.message}`);
+                messages.append(listItem);
+            });
+
+            socket.on('errorMessage', function(error) {
+                alert(error);
+            });
+        });
+    </script>
+</body>
+</html>

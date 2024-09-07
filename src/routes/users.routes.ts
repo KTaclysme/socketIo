@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import {getUserById, addUser} from '../controllers/users.controller'
+import {getUserById, addUser, getUserByName} from '../controllers/users.controller'
 
 const router = Router();
 
@@ -13,6 +13,20 @@ router.get('/:id', async (req, res) => {
         res.status(500).json({error: 'Unavaible user id'})
     }   
 })
+
+router.get('/name/:name', async (req, res) => {
+    try {
+        const user = await getUserByName(req.params.name);
+        if (user) {
+            res.json({ id: user.id });
+        } else {
+            res.status(404).json({ message: 'Utilisateur non trouvé.' });
+        }
+    } catch (error) {
+        console.error('Erreur lors de la recherche de l\'utilisateur:', error);
+        res.status(500).json({ message: 'Erreur interne du serveur.' });
+    }
+});
 
 router.post('/signIn', async (req, res) => {
     const { name, password } = req.body;

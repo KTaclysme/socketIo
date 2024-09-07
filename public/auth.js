@@ -16,7 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const data = await response.json();
-            result.textContent = data.message || 'Inscription réussie';
+            if (data.token) {
+                localStorage.setItem('token', data.token);
+            } else {
+                result.textContent = data.message || 'Erreur lors de l\'inscription';
+            }
         });
     }
 
@@ -34,7 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const data = await response.json();
-            result.textContent = data.token ? `Connexion réussie: ${data.token}` : 'Échec de la connexion';
+            if (data.token) {
+                localStorage.setItem('token', data.token);
+                window.location.href = '/tchat.html'; // Redirige vers la page de chat
+            } else {
+                result.textContent = data.message || 'Échec de la connexion';
+            }
         });
     }
 });

@@ -1,48 +1,111 @@
 import { Server, Socket } from 'socket.io';
-
-const users: { [username: string]: string } = {};
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '../utils/jwt.utils';
+import { createMessage } from '../controllers/messages.controller';
+import { getUserByName, updateUser, getUserNameById } from '../controllers/users.controller';
 
 export default function setupSocketIO(io: Server) {
-  io.on('connection', (socket: Socket) => {
-    console.log('Un utilisateur est connecté');
+    io.use(async (socket: Socket, next) => {
+        const token = socket.handshake.auth?.token;
 
-    socket.on('register', (username: string) => {
-      users[username] = socket.id;
-      console.log('Un utilisateur est connecté sous le nom de ' + username);
-    });
-
-    socket.on('send', (data: { from: string; msg: string }) => {
-      const { from, msg } = data;
-
-      console.log('Message reçu de ' + from);
-      console.log('Message : ' + msg);
-
-      if (msg.startsWith('@')) {
-        const name = msg.substring(1, msg.indexOf(' '));
-        const message = msg.substring(name.length + 2);
-        const recipientSocketId = users[name];
-
-        if (recipientSocketId) {
-          io.to(recipientSocketId).emit('recupererMsg', message);
-        } else {
-          console.log('Utilisateur ' + name + ' non trouvé');
+        if (!token) {
+            return next(new Error('Authentication error'));
         }
-      } else {
-        console.log('Message envoyé à tout le monde');
-        io.emit('recupererMsg', msg);
-      }
 
-      console.log('\n');
-    });
-
-    socket.on('disconnect', () => {
-      for (const username in users) {
-        if (users[username] === socket.id) {
-          delete users[username];
-          break;
+        try {
+            const decoded = jwt.verify(token, JWT_SECRET) as { id: number };
+            socket.data.userId = decoded.id;
+            next();
+        } catch (err) {
+            next(new Error('Invalid token'));
         }
-      }
-      console.log('Un utilisateur est déconnecté');
     });
-  });
+
+    io.on('connection', async (socket: Socket) => {
+        console.log(`Utilisateur connecté : ${socket.data.userId}`);
+
+        const userId = socket.data.userId;
+        try {
+            await updateUser(userId, socket.id); 
+            console.log(`Socket ID mis à jour : ${socket.id}`);
+        } catch (error) {
+            console.log("Erreur lors de la mise à jour du socketId:", error);
+        }
+
+        socket.on('sendMessage', async (data: { body: string }) => {
+            const userFrom = socket.data.userId;
+            const msg = data.body.trim();
+        
+            console.log(`Message reçu: '${msg}'`); 
+        
+            try {
+                const userNameFrom = await getUserNameById(userFrom);
+
+                if (msg.startsWith('@')) {
+                    console.log("Message détecté comme mention d'utilisateur");
+        
+                    const spaceIndex = msg.indexOf(' ');
+                    if (spaceIndex === -1) {
+                        console.error('Format de message invalide, aucun espace trouvé après le @username.');
+                        return;
+                    }
+        
+                    const userName = msg.substring(1, spaceIndex).trim(); 
+                    const messageBody = msg.substring(spaceIndex + 1).trim();
+        
+                    console.log(`Utilisateur mentionné: ${userName}, Message: ${messageBody}`);
+        
+                    const user = await getUserByName(userName);
+        
+                    if (user) {
+                        console.log(`Utilisateur trouvé: ${userName}, socketId: ${user.sockerId}`);
+        
+                        if (!user.sockerId) {
+                            console.error('Socket ID non trouvé pour l\'utilisateur:', userName);
+                            return;
+                        }
+        
+                        const message = await createMessage({
+                            body: messageBody,
+                            userFrom: userFrom,
+                            userTo: user.id
+                        });
+        
+                        socket.to(user.sockerId).emit('recupererMsg', {
+                            from: userNameFrom,
+                            message: message.body
+                        });
+        
+                        console.log("Message envoyé à:", user.sockerId);
+                    } else {
+                        console.error('Utilisateur non trouvé:', userName);
+                    }
+                } else {
+                    console.log('Message sans arobase détecté, envoi global');
+        
+                    io.sockets.sockets.forEach((sock) => {
+                        if (sock.data.userId !== userFrom) {
+                            console.log(`Envoi d'un message global de ${userNameFrom} à ${sock.id}`);
+                            sock.emit('recupererMsg', {
+                                from: userNameFrom, 
+                                message: msg
+                            });
+                        }
+                    });
+                }
+        
+                socket.emit('recupererMsg', {
+                    from: "Vous",
+                    message: msg
+                });
+            } catch (error) {
+                console.error('Erreur lors de l\'envoi du message:', error.message);
+                socket.emit('errorMessage', error.message);
+            }
+        });
+        
+        socket.on('disconnect', async () => {
+            console.log(`Utilisateur déconnecté : ${socket.data.userId}`);
+        });
+    });
 }

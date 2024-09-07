@@ -16,11 +16,12 @@ export const createMessage = async (data: { body: string, userFrom: number, user
         throw new Error(`User with ID ${data.userFrom} not found`);
     }
 
+    // Si userTo n'est pas défini, envoie le message à tous les utilisateurs
     return await prisma.message.create({
         data: {
             body: data.body,
             userFrom: {
-                connect: { id: data.userFrom },  
+                connect: { id: data.userFrom },
             },
             userTo: {
                 connect: { id: data.userTo },
